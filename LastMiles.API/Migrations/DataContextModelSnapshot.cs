@@ -55,10 +55,20 @@ namespace LastMiles.API.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken();
 
+                    b.Property<DateTime>("Created");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256);
 
                     b.Property<bool>("EmailConfirmed");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired();
+
+                    b.Property<DateTime>("LastActive");
+
+                    b.Property<string>("LastName")
+                        .IsRequired();
 
                     b.Property<bool>("LockoutEnabled");
 
@@ -115,19 +125,6 @@ namespace LastMiles.API.Migrations
                     b.HasIndex("UserId1");
 
                     b.ToTable("AspNetUserRoles");
-                });
-
-            modelBuilder.Entity("LastMiles.API.DataBase.testdb", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("MyProperty");
-
-                    b.HasKey("id");
-
-                    b.ToTable("Testdbs");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

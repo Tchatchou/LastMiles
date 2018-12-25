@@ -13,6 +13,6 @@ namespace LastMiles.API.DataBase
         {
         }
 
-        public DbSet<testdb> Testdbs {get;set;}
+       
     }
 }

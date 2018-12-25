@@ -16,6 +16,7 @@ namespace LastMiles.API
         {
             CreateWebHostBuilder(args).Build().Run();
         }
+//https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-2.2#add-providers
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)

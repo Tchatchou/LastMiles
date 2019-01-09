@@ -1,0 +1,14 @@
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\obj\Debug\netcoreapp2.2\Infrastructure.csprojAssemblyReference.cache
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\obj\Debug\netcoreapp2.2\Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\obj\Debug\netcoreapp2.2\Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\obj\Debug\netcoreapp2.2\Infrastructure.AssemblyInfo.cs
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\bin\Debug\netcoreapp2.2\Infrastructure.deps.json
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\bin\Debug\netcoreapp2.2\Infrastructure.runtimeconfig.json
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\bin\Debug\netcoreapp2.2\Infrastructure.runtimeconfig.dev.json
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\bin\Debug\netcoreapp2.2\Infrastructure.dll
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\bin\Debug\netcoreapp2.2\Infrastructure.pdb
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\bin\Debug\netcoreapp2.2\Data_Base.dll
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\bin\Debug\netcoreapp2.2\Data_Base.pdb
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\obj\Debug\netcoreapp2.2\Infrastructure.csproj.CopyComplete
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\obj\Debug\netcoreapp2.2\Infrastructure.dll
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Infrastructure\obj\Debug\netcoreapp2.2\Infrastructure.pdb

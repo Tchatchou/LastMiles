@@ -8,13 +8,15 @@ using LastMiles.API.BusinessLogic.Communication;
 using LastMiles.API.DataBase;
 using LastMiles.API.DataTransferObject;
 using LastMiles.API.Helpers;
-using LastMiles.API.RepositoriesAndUnitOfWork.IRepositories.IRepositoriesMembership;
+using LastMiles.API.Repositories_UnitOfWork.Repositories.Reference_Data_Repository;
+using LastMiles.API.Repositories_UnitOfWork.UnitOfWorks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace LastMiles.API.Controllers
 {
@@ -23,7 +25,7 @@ namespace LastMiles.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IRepositoryAuthentication _repoAuth;
+      
         private readonly IConfiguration _config;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
@@ -32,13 +34,15 @@ namespace LastMiles.API.Controllers
          private readonly ILogger<AuthController>  _logger;
         private readonly IEmail _email;
         private readonly IOrangeSMSProvider _orangesms;
+        private readonly IUnitOfWork_ReferenceData _uow_Reference_Data;
 
         public AuthController(IConfiguration config,
                               UserManager<User> userManager,
                               SignInManager<User> signInManager,
                               RoleManager<Role> roleManager,
                               IMapper mapper, ILogger<AuthController> logger,
-                              IEmail email,IOrangeSMSProvider orangesms
+                              IEmail email,IOrangeSMSProvider orangesms,
+                              IUnitOfWork_ReferenceData uow_reference_data
                               )
         {
             _signInManager = signInManager;
@@ -49,16 +53,20 @@ namespace LastMiles.API.Controllers
             _logger = logger;
             _email = email;
             _orangesms = orangesms;
+            _uow_Reference_Data = uow_reference_data;
+           
         }
 
+   
+
         [AllowAnonymous]
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody]UserForLoginDto userForLoginDto)
+        [HttpPost("LoginUser")]
+        public async Task<IActionResult> LoginUser([FromBody]User_For_Login_Dto userForLoginDto)
         {
             var user = await _userManager.FindByNameAsync(userForLoginDto.UserName);
 
             if (user == null)
-                return NotFound(new MessageDto{message_en = "username or password incorrect",message_fr = "incorrect username/mot de passe"});
+                return NotFound(new Message_Dto{message_en = "username or password incorrect",message_fr = "incorrect username/mot de passe"});
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, userForLoginDto.Password, false);
 
@@ -71,17 +79,29 @@ namespace LastMiles.API.Controllers
                //                     .Include(p => p.Photos)
                //                     .FirstOrDefaultAsync( u => u.NormalizedUserName == userForLoginDto.UserName.ToUpper);
   
-                var userRoles = new List<string> ();
+                try {
+                    var userRoles = new List<string> ();
+    
+                    var token = JwtTokenGenerationHelper.token(user,_config,_userManager, userRoles).Result;
+                    
+                    var userToReturn = _mapper.Map<User_For_Registration_Dto>(user);
 
-                var token = JwtTokenGenerationHelper.token(user,_config,_userManager, userRoles).Result;
-                var userToReturn = _mapper.Map<UserForRegistrationDto>(user);
-                userToReturn.Roles = userRoles;
-
-                return Ok(new
-                {
-                    token =token,
-                    user  = userToReturn
-                });
+                    if(user.UserRoles!=null)
+                    userToReturn.Roles = (from r in user.UserRoles select new Role_Dto {role_id= r.Role.Id, role_name = r.Role.Name}).ToList();
+    
+    
+                    if(!userRoles.Contains("SuperAdmin"))
+                         if(!userRoles.Contains("Admin"))
+                            userToReturn.permission =JsonConvert.DeserializeObject<List<Permission_Dto>>(user.UserAccessingEntityWithPermissions);
+                    
+                    return Ok(new
+                    {
+                        token =token,
+                        user  = userToReturn
+                    });
+                } catch (Exception ex) {
+                  _logger.LogError(ex.Message);
+                }
             }
 
             return Unauthorized();
@@ -89,25 +109,43 @@ namespace LastMiles.API.Controllers
         }
     
         [AllowAnonymous]
-        [HttpPost("Register")]
-        public  async Task<IActionResult> Register ([FromBody]UserForRegistrationDto userForRegistrationDto)
+        [HttpPost("RegisterUser")]
+        public  async Task<IActionResult> RegisterUser ([FromBody]User_For_Registration_Dto userForRegistrationDto)
         {
            
-           var userToCreate =  _mapper.Map<User>(userForRegistrationDto);
+            var userToCreate =  _mapper.Map<User>(userForRegistrationDto);
+
+            List<int> role_ids_user_is_tobeset_with_defauld_permission = new List<int>();
 
             if(userForRegistrationDto.Roles.Count()==0)
-              return BadRequest(new MessageDto { message_en ="User need to be assigned to at least one role / profile ",
+              return BadRequest(new Message_Dto { message_en ="User need to be assigned to at least one role / profile ",
                                                  message_fr = "Utilisateur avoir au moins un role valide"});
 
             foreach(var r in userForRegistrationDto.Roles)
-                     if(!_roleManager.RoleExistsAsync(r).Result)
-                            return BadRequest(new MessageDto { message_en  ="Role does'not exist ",
+            {
+                  role_ids_user_is_tobeset_with_defauld_permission.Add(r.role_id);
+
+                  if(!_roleManager.RoleExistsAsync(r.role_name).Result)
+                            return BadRequest(new Message_Dto { message_en  ="Role does'not exist ",
                                                                 message_fr = "Role n'existe pas"});
+            }
+                   
+           // set default permission
+           var default_permision =_uow_Reference_Data.role.Get_Roles_With_Default_Permisions(role_ids_user_is_tobeset_with_defauld_permission);
+
+           default_permision.ForEach(e=>e.isSelected = true);
+
+           userToCreate.UserAccessingEntityWithPermissions =JsonConvert.SerializeObject(default_permision);           
+           userToCreate.EntityUserMapTo_Id = userForRegistrationDto.EntityUserMapTo.entity_id;
+           userToCreate.EntityUserMapTo_Name = userForRegistrationDto.EntityUserMapTo.entity_name;
+           userToCreate.EntityUserMapTo_Type = userForRegistrationDto.EntityUserMapTo.entity_type;
+
+
 
            var result1 = await _userManager.CreateAsync(userToCreate, userForRegistrationDto.Password);
-           var result2 = await _userManager.AddToRolesAsync(userToCreate,userForRegistrationDto.Roles);
+           var result2 = await _userManager.AddToRolesAsync(userToCreate,userForRegistrationDto.Roles.Select(r=>r.role_name));
 
-           var userToReturn = _mapper.Map<UserForRegistrationDto>(userToCreate);
+           var userToReturn = _mapper.Map<User_For_Registration_Dto>(userToCreate);
 
                userToReturn.Roles = userForRegistrationDto.Roles;
 

@@ -1,0 +1,14 @@
+{
+  "ProjectFilePath": "c:\\Users\\Jonathan\\Desktop\\Distribution\\LastMiles\\Data_Base\\Data_Base.csproj",
+  "TargetFramework": "netstandard2.0",
+  "TagHelpers": [],
+  "Configuration": {
+    "ConfigurationName": "UnsupportedRazor",
+    "LanguageVersion": "1.0",
+    "Extensions": [
+      {
+        "ExtensionName": "UnsupportedRazorExtension"
+      }
+    ]
+  }
+}

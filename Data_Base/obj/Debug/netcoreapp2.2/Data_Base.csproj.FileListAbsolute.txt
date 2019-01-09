@@ -1,0 +1,11 @@
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\obj\Debug\netcoreapp2.2\Data_Base.csprojAssemblyReference.cache
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\obj\Debug\netcoreapp2.2\Data_Base.csproj.CoreCompileInputs.cache
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\obj\Debug\netcoreapp2.2\Data_Base.AssemblyInfoInputs.cache
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\obj\Debug\netcoreapp2.2\Data_Base.AssemblyInfo.cs
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\bin\Debug\netcoreapp2.2\Data_Base.deps.json
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\bin\Debug\netcoreapp2.2\Data_Base.runtimeconfig.json
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\bin\Debug\netcoreapp2.2\Data_Base.runtimeconfig.dev.json
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\bin\Debug\netcoreapp2.2\Data_Base.dll
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\bin\Debug\netcoreapp2.2\Data_Base.pdb
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\obj\Debug\netcoreapp2.2\Data_Base.dll
+C:\Users\Jonathan\Desktop\Distribution\LastMiles\Data_Base\obj\Debug\netcoreapp2.2\Data_Base.pdb

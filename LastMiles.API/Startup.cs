@@ -19,6 +19,12 @@ using System.Text;
 using AutoMapper;
 using Swashbuckle.AspNetCore.Swagger;
 using LastMiles.API.BusinessLogic.Communication;
+using LastMiles.API.Repositories_UnitOfWork.UnitOfWorks;
+using LastMiles.API.BusinessLogic.Identity;
+using System.Net;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using LastMiles.API.Helpers;
 
 namespace LastMiles.API
 {
@@ -88,6 +94,13 @@ namespace LastMiles.API
 
             services.AddScoped<IEmail, Email>(); // inject per new request done
             services.AddScoped<IOrangeSMSProvider, OrangeSMSProvider>();
+
+services.AddScoped<IUnitOfWork_ReferenceData, UnitOfWork_ReferenceData>(); 
+            // unit of work injection
+            services.AddScoped<IUnitOfWork_ReferenceData, UnitOfWork_ReferenceData>(); 
+            services.AddScoped<IUnitOfWork_Identity, UnitOfWork_Identity>();
+
+            services.AddScoped<IAccount_Creation, Account_Creation>();    
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -101,7 +114,18 @@ namespace LastMiles.API
             }
             else
             {
-                 // app.UseExceptionHandler("/Error");
+                  app.UseExceptionHandler(builder=>{
+                      builder.Run(async context => {
+                          context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                         var error = context.Features.Get<IExceptionHandlerFeature>();
+
+                        if(error!=null)
+                        {
+                           context.Response.AddApplicationError(error.Error.Message);
+                            await context.Response.WriteAsync(error.Error.Message);
+                        }
+                      });
+                  });
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 //  app.UseHsts();
             }
@@ -125,6 +149,9 @@ namespace LastMiles.API
             });
             app.UseMvc();
 
+            //https://stackoverflow.com/questions/11830338/web-api-creating-api-keys
+
+            //https://developer.okta.com/blog/2018/02/01/secure-aspnetcore-webapi-token-auth
         }
     }
 }

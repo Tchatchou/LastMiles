@@ -9,7 +9,7 @@ using LastMiles.API.BusinessLogic.Communication;
 using LastMiles.API.DataBase;
 using LastMiles.API.DataTransferObject;
 using LastMiles.API.Helpers;
-using LastMiles.API.RepositoriesAndUnitOfWork.IRepositories.IRepositoriesMembership;
+using LastMiles.API.Repositories_UnitOfWork.Repositories.Reference_Data_Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +32,7 @@ namespace LastMiles.API.Controllers
         private readonly IEmail _email;
         private readonly IOrangeSMSProvider _orangesms;
         private RoleManager<Role> _roleManager { get; }
+        public IRole_Permission_Repository _role_Permission_Repository { get; }
 
         public UserController(UserManager<User> userManager,
                               SignInManager<User> signInManager,
@@ -39,7 +40,8 @@ namespace LastMiles.API.Controllers
                               IMapper mapper,
                               ILogger<UserController> logger,
                               IConfiguration config,
-                              IEmail email, IOrangeSMSProvider orangesms                              
+                              IEmail email, IOrangeSMSProvider orangesms,
+                              IRole_Permission_Repository role_Permission_Repository                              
                               )
         {
             _roleManager = roleManager;
@@ -48,6 +50,7 @@ namespace LastMiles.API.Controllers
             _config = config;
             _email = email;
             _orangesms = orangesms;
+            _role_Permission_Repository = role_Permission_Repository;
             _signInManager = signInManager;
             _userManager = userManager;
         }
@@ -60,10 +63,10 @@ namespace LastMiles.API.Controllers
             if(user == null)
              return NotFound(new{ message = "User not found"});
             
-            var userToReturn = _mapper.Map<UserForRegistrationDto>(user);
+            var userToReturn = _mapper.Map<User_For_Registration_Dto>(user);
 
             foreach(var role in user.UserRoles)
-                userToReturn.Roles.Add(role.Role.Name);
+                userToReturn.Roles.Add(new Role_Dto {role_id = role.Role.Id, role_name = role.Role.Name});
 
             return Ok(userToReturn);
             
@@ -76,7 +79,7 @@ namespace LastMiles.API.Controllers
         } */
 
         [HttpPost("ChangePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody]ChangePasswordDto changePasswordDto)
+        public async Task<IActionResult> ChangePassword([FromBody]Change_Password_Dto changePasswordDto)
         {
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -90,14 +93,14 @@ namespace LastMiles.API.Controllers
                
              if (result.Succeeded)
             {
-                return Ok( new MessageDto {message_en = "Password Change",message_fr = "mot de passe change"});      
+                return Ok( new Message_Dto {message_en = "Password Change",message_fr = "mot de passe change"});      
             }
-              return NotFound ( new MessageDto {message_en = "Invalid password ",message_fr = "mot de pass invalide"});            
+              return NotFound ( new Message_Dto {message_en = "Invalid password ",message_fr = "mot de pass invalide"});            
 
         }
 
         [AllowAnonymous]
-        [HttpGet("ResetUser")] // same as forgot password        
+        [HttpPost("ResetUser")] // same as forgot password        
         public async Task<IActionResult> ResetUser(string UserName)
         {
             //http://aryalnishan.com.np/asp-net-mvc/solved-reset-user-password-using-usermanager-asp-net-identity/
@@ -105,7 +108,7 @@ namespace LastMiles.API.Controllers
              var user =await _userManager.FindByNameAsync(UserName);
                
              if (user ==null )
-                return BadRequest(new MessageDto {message_en ="Invalid user",message_fr ="invalide utilisateur"});
+                return BadRequest(new Message_Dto {message_en ="Invalid user",message_fr ="invalide utilisateur"});
 
                 if ( await _userManager.HasPasswordAsync(user))
                 {
@@ -128,7 +131,7 @@ namespace LastMiles.API.Controllers
                     // if role is retails send email ==> to be study as a way to limit sms usage
                     _orangesms.send_SMS(user.PhoneNumber,"Votre compte a ete reconfigure avec ce nouveau password :"+ new_Password +"Bien vouloir vous connecter");
                      
-                     return Ok(new MessageDto {message_en = "User is reset ", message_fr="Utilisateur est reconfigure"});
+                     return Ok(new Message_Dto {message_en = "User is reset ", message_fr="Utilisateur est reconfigure"});
                 }
 
 
@@ -137,7 +140,7 @@ namespace LastMiles.API.Controllers
         }
        
         [Authorize(Roles="SuperAdmin,RetailerAdmin,DistributeurAdmin,CompanyAdmin")]
-        [HttpGet("LockUser")] 
+        [HttpPost("LockUser")] 
         public async Task<IActionResult> LockUser(string UserName)
         {
            
@@ -152,12 +155,12 @@ namespace LastMiles.API.Controllers
                 await _userManager.SetLockoutEnabledAsync(user,true);
                 await  _userManager.SetLockoutEndDateAsync(user, lockoutEndDate);
 
-                return Ok(new MessageDto {message_en = "User is lock", message_fr="Utilisateur est bloque"});
+                return Ok(new Message_Dto {message_en = "User is lock", message_fr="Utilisateur est bloque"});
 
         }
 
         [Authorize(Roles="SuperAdmin,RetailerAdmin,DistributeurAdmin,CompanyAdmin")]
-        [HttpGet("UnLockUser")] 
+        [HttpPost("UnLockUser")] 
         public async Task<IActionResult> UnLockUser(string UserName)
         {
             
@@ -170,9 +173,20 @@ namespace LastMiles.API.Controllers
                 await _userManager.SetLockoutEnabledAsync(user,true);
                 await  _userManager.SetLockoutEndDateAsync(user, lockoutEndDate);
 
-                return Ok(new MessageDto {message_en = "User is unlock", message_fr="Utilisateur est debloque"});
+                return Ok(new Message_Dto {message_en = "User is unlock", message_fr="Utilisateur est debloque"});
 
         }
 
+        [Authorize(Roles="SuperAdmin,RetailerAdmin,DistributeurAdmin,CompanyAdmin")]
+        [HttpPost("UpdateUserPermissions")] 
+        public async Task<IActionResult> UpdateUserPermissions(string userName, [FromBody] List<Permission_Dto> permission_Dto)
+        {  
+             _role_Permission_Repository.Set_Permission_Of_User(userName,_userManager,permission_Dto);
+
+             return Ok();
+        }
+   
+   
+   
     }
 }

@@ -2,28 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Data_Base;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data_Access_Layer.Repositories.Base_Repository
 {
-    public interface IRepository<TEntity> where TEntity : class
+    public interface IRepository<T> where T : class
     {
          //IQueryable ==> the filter is done in Database
         //IEnumerable ==> the filter is done in memory
         // great article to understnd the including db extention  https://blog.magnusmontin.net/2013/05/30/generic-dal-using-entity-framework/
-        void Add(TEntity entity);
+        void Add(T entity);
         void Delete(int id);
-
-        void Update(TEntity entity);
-       
-        IQueryable<TEntity> GetAll();
-
-        IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate);
-
-        TEntity GetById(int id);
-
-        int Count(Func<TEntity, bool> predicate);
+        void Update(T entity);       
+        Task<IEnumerable<T>> GetAll();
+        Task<IEnumerable<T>> Find(Expression<Func<T, bool>> predicate);
+        Task<T> GetById(int id);
+        int Count(Func<T, bool> predicate);
     }
 
     public class Repository<T> : IRepository<T> where T : class
@@ -54,19 +50,19 @@ namespace Data_Access_Layer.Repositories.Base_Repository
             return _context.Set<T>().Where(predicate).Count();
         }
 
-        public IQueryable<T> Find(Expression<Func<T, bool>> predicate)
+        public async Task<IEnumerable<T>> Find(Expression<Func<T, bool>> predicate)
         {
-            return _context.Set<T>().Where(predicate);
+            return await _context.Set<T>().Where(predicate).ToListAsync();
         }
 
-        public IQueryable<T> GetAll()
+        public async Task<IEnumerable<T>> GetAll()
         {
-            return _context.Set<T>();
+            return await _context.Set<T>().ToListAsync();
         }
 
-        public T GetById(int id)
+        public Task<T> GetById(int id)
         {
-            return _context.Set<T>().Find(id);
+            return _context.Set<T>().FindAsync(id);
         }
        
     }

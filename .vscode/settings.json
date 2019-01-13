@@ -2,7 +2,7 @@
     "files.exclude": {
         "**/bin" : true,
         "**/obj" : true,
-        "**/*.csproj":true,
+        "**/*.csproj": true,
         "**/.git": true,
         "**/.svn": true,
         "**/.hg": true,

@@ -10,9 +10,9 @@ namespace Data_Base.Data_Transfer_Objects
            [Required]
            public string name { get; set; }
            [Required]
-           public string comment { get; set; }
-           [Required]
-
-           public List<Company_Contact_Dto> contacts { get; set; } 
+           public string comment { get; set; }        
+           
+          // [Required]
+           // public List<Company_Contact_Dto> contacts { get; set; } 
     }
 }

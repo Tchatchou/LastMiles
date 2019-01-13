@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LastMiles.API.DataBase;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -18,13 +17,22 @@ using Microsoft.Extensions.Options;
 using System.Text;
 using AutoMapper;
 using Swashbuckle.AspNetCore.Swagger;
+/* 
 using LastMiles.API.BusinessLogic.Communication;
 using LastMiles.API.Repositories_UnitOfWork.UnitOfWorks;
-using LastMiles.API.BusinessLogic.Identity;
+using LastMiles.API.BusinessLogic.Identity; 
+using LastMiles.API.DataBase;
+*/
 using System.Net;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using LastMiles.API.Helpers;
+using Data_Base;
+using Data_Base.DB_Identity_Management;
+using Infrastructure.Communication.EmailSendgrid;
+using Infrastructure.Communication.OrangeSMS;
+using Data_Access_Layer.UnitOfWorks;
+using Business_Layer.Identity;
 
 namespace LastMiles.API
 {
@@ -39,7 +47,7 @@ namespace LastMiles.API
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {
+        {   //
             services.AddDbContext<DataContext>(x => x.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             IdentityBuilder builder = services.AddIdentityCore<User>(opt =>
@@ -62,7 +70,7 @@ namespace LastMiles.API
                     {
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            ValidateIssuerSigningKey = true,
+                            ValidateIssuerSigningKey = true,// ==> for prod istead of "Super secret key"
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
                             ValidateIssuer = false,
                             ValidateAudience = false
@@ -70,6 +78,7 @@ namespace LastMiles.API
                     });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            
             services.AddCors();
             services.AddSwaggerGen(c =>
                                     {
@@ -95,12 +104,17 @@ namespace LastMiles.API
             services.AddScoped<IEmail, Email>(); // inject per new request done
             services.AddScoped<IOrangeSMSProvider, OrangeSMSProvider>();
 
-services.AddScoped<IUnitOfWork_ReferenceData, UnitOfWork_ReferenceData>(); 
+        
             // unit of work injection
             services.AddScoped<IUnitOfWork_ReferenceData, UnitOfWork_ReferenceData>(); 
             services.AddScoped<IUnitOfWork_Identity, UnitOfWork_Identity>();
 
             services.AddScoped<IAccount_Creation, Account_Creation>();    
+            services.AddScoped<IAccount_Queries, Account_Queries>();    
+            services.AddScoped<IAccount_Update, Account_Update>();    
+            services.AddScoped<IUser_Management, User_Management>();    
+              
+            services.AddScoped<IAuthentication, Authentication>(); 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -114,7 +128,7 @@ services.AddScoped<IUnitOfWork_ReferenceData, UnitOfWork_ReferenceData>();
             }
             else
             {
-                  app.UseExceptionHandler(builder=>{
+                /*   app.UseExceptionHandler(builder=>{
                       builder.Run(async context => {
                           context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                          var error = context.Features.Get<IExceptionHandlerFeature>();
@@ -125,7 +139,7 @@ services.AddScoped<IUnitOfWork_ReferenceData, UnitOfWork_ReferenceData>();
                             await context.Response.WriteAsync(error.Error.Message);
                         }
                       });
-                  });
+                  }); */
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 //  app.UseHsts();
             }

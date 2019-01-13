@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace Data_Base.Data_Transfer_Objects
 {
@@ -26,12 +27,13 @@ namespace Data_Base.Data_Transfer_Objects
 
         public Entity_UserMapTo EntityUserMapTo { get; set; }
         public DateTime Created { get; set; }
-        public DateTime LastActive { get; set; }
+        public DateTime  LastActive { get; set; }
 
-
+       // [JsonIgnore]
         [Required] 
         public List <Role_Dto> Roles { get; set; }
 
+        [JsonIgnore]
         public List<Permission_Dto> permission { get; set; }
 
         public User_For_Registration_Dto()

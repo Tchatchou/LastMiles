@@ -23,12 +23,12 @@ namespace Data_Base.Data_Transfer_Objects
 
     //    public  ICollection<Distributor_Retailer> list_distributor_retailer{get;set;}
 
-        public string code { get; set; }
+        public string code { get; set; } // code to display for the scan
 
-        public string name { get; set; }
-        public string address { get; set; }
-
-        public string desc { get; set; }
+        public string name { get; set; } // represent the name of the retailer eg alimentation fostso
+        public string address { get; set; } //
+      
+        public string desc { get; set; } // desc of the retailer place ,acitivity etc.
 
         public string picture1 { get; set; }
 

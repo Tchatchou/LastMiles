@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
-using LastMiles.API.BusinessLogic.Communication;
-using LastMiles.API.DataBase;
+using Data_Base;
+using Infrastructure.Communication.EmailSendgrid;
+/* using LastMiles.API.BusinessLogic.Communication;
+using LastMiles.API.DataBase; */
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;

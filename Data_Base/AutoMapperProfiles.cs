@@ -32,6 +32,9 @@ namespace LastMiles.API.Helpers
             CreateMap<Distributor_For_Registration_Dto,Distributor>();
             CreateMap<Distributor,Distributor_For_Registration_Dto>();
 
+            CreateMap<Distributor_For_Details_Dto,Distributor>();
+            CreateMap<Distributor,Distributor_For_Details_Dto>();
+
             CreateMap<Retailer_For_Registration_Dto,Retailer>();
             CreateMap<Retailer,Retailer_For_Registration_Dto>();
 

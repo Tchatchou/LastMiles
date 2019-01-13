@@ -2,6 +2,7 @@ using Data_Base.DB_Identity_Management;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Data_Base
 {
@@ -11,8 +12,30 @@ namespace Data_Base
                                IdentityUserLogin<int>, IdentityRoleClaim<int>,
                                IdentityUserToken<int>>
     {
-        public DataContext(DbContextOptions options) : base(options)
+        const string connectionString = "Integrated Security=SSPI;Initial Catalog=LastMilesDB;Data Source=CHRIS\\SQLEXPRESS;";
+       
+        public DataContext() : base() { }
+        public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
+        }
+//https://garywoodfine.com/using-ef-core-in-a-separate-class-library-project/
+//https://stackoverflow.com/questions/51145780/using-entity-framework-core-migrations-for-class-library-project
+
+/* 
+        public DataContext CreateDbContext(string[] args)
+        {
+          var builder  = new ConfigurationBuilder()
+                                    .SetBasePath(@"C:\Users\Jonathan\Desktop\Distribution\LastMiles\LastMiles.API")
+                                    .AddJsonFile("appsettings.json")
+                                    .Build();
+          var optionsBuilder = new DbContextOptionsBuilder<DataContext>()
+            .UseSqlServer(builder.GetConnectionString("DefaultConnection"));
+            return new DataContext(optionsBuilder.Options);
+        }  */
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(connectionString);
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

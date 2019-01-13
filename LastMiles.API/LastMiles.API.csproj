@@ -16,7 +16,7 @@
     <PackageReference Include="Flurl.Http" Version="2.4.0"/>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1"/>
   </ItemGroup>
-  <!-- <ItemGroup>
-    <ProjectReference Include="..\Database\Database.csproj"/>
-  </ItemGroup> -->
+  <ItemGroup>
+    <ProjectReference Include="..\Business_Layer\Business_Layer.csproj"/>
+  </ItemGroup> 
 </Project>

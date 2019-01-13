@@ -5,17 +5,25 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
-using LastMiles.API.BusinessLogic.Communication;
+using Data_Base.DB_Identity_Management;
+using Data_Base.Data_Transfer_Objects;
+using Infrastructure.Communication;
+using Infrastructure.Helpers;
+/* using LastMiles.API.BusinessLogic.Communication;
 using LastMiles.API.DataBase;
 using LastMiles.API.DataTransferObject;
 using LastMiles.API.Helpers;
-using LastMiles.API.Repositories_UnitOfWork.Repositories.Reference_Data_Repository;
+using LastMiles.API.Repositories_UnitOfWork.Repositories.Reference_Data_Repository;  */
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Infrastructure.Communication.EmailSendgrid;
+using Infrastructure.Communication.OrangeSMS;
+using Data_Access_Layer.Repositories.Reference_Data_Repository;
+using Business_Layer.Identity;
 
 namespace LastMiles.API.Controllers
 {
@@ -31,6 +39,8 @@ namespace LastMiles.API.Controllers
         private readonly IConfiguration _config;
         private readonly IEmail _email;
         private readonly IOrangeSMSProvider _orangesms;
+        private readonly IUser_Management _user_Management;
+
         private RoleManager<Role> _roleManager { get; }
         public IRole_Permission_Repository _role_Permission_Repository { get; }
 
@@ -41,7 +51,8 @@ namespace LastMiles.API.Controllers
                               ILogger<UserController> logger,
                               IConfiguration config,
                               IEmail email, IOrangeSMSProvider orangesms,
-                              IRole_Permission_Repository role_Permission_Repository                              
+                              IRole_Permission_Repository role_Permission_Repository ,   
+                              IUser_Management user_Management                          
                               )
         {
             _roleManager = roleManager;
@@ -51,6 +62,7 @@ namespace LastMiles.API.Controllers
             _email = email;
             _orangesms = orangesms;
             _role_Permission_Repository = role_Permission_Repository;
+            _user_Management = user_Management;
             _signInManager = signInManager;
             _userManager = userManager;
         }
@@ -58,45 +70,37 @@ namespace LastMiles.API.Controllers
         [HttpGet("GetUser")]
         public async Task<IActionResult> GetUser(string UserName)
         {
-            var user = await _userManager.FindByNameAsync(UserName);
-
-            if(user == null)
-             return NotFound(new{ message = "User not found"});
+          var result =await _user_Management.get_user(UserName);
             
-            var userToReturn = _mapper.Map<User_For_Registration_Dto>(user);
+          if(result is null)
+          return NotFound();  
 
-            foreach(var role in user.UserRoles)
-                userToReturn.Roles.Add(new Role_Dto {role_id = role.Role.Id, role_name = role.Role.Name});
-
-            return Ok(userToReturn);
-            
+          return Ok(result);
         }
 
-       /*  [HttpGet("GetUserByRole")]
-        public async Task<IActionResult> GetUserByRole(List<string> roles)
+         [HttpGet("GetUsersForAnEntity")]
+        public async Task<IActionResult> GetUsersForAnEntity(int entity_id, string entity_type)
         {
-            return Ok();            
-        } */
+            var result =  _user_Management.get_users_for_an_entity(entity_id,entity_type);   
+
+            return Ok(result);     
+        } 
 
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody]Change_Password_Dto changePasswordDto)
         {
+          var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+          dynamic result =await _user_Management.change_user_password(changePasswordDto,userId);
 
-            var user =await _userManager.FindByIdAsync(userId);
+          if(result is IEnumerable<Microsoft.AspNetCore.Identity.IdentityError>)
+          return BadRequest(result);
+          
+          if(result is null)
+           return BadRequest(result);
 
-            if (user ==null )
-                return BadRequest(new { error ="User do not exist "});
-
-            var result  = await _userManager.ChangePasswordAsync(user,changePasswordDto.CurrentPassword,changePasswordDto.NewPassword);
-               
-             if (result.Succeeded)
-            {
-                return Ok( new Message_Dto {message_en = "Password Change",message_fr = "mot de passe change"});      
-            }
-              return NotFound ( new Message_Dto {message_en = "Invalid password ",message_fr = "mot de pass invalide"});            
-
+          return Ok(result);
+           
         }
 
         [AllowAnonymous]
@@ -105,75 +109,37 @@ namespace LastMiles.API.Controllers
         {
             //http://aryalnishan.com.np/asp-net-mvc/solved-reset-user-password-using-usermanager-asp-net-identity/
                
-             var user =await _userManager.FindByNameAsync(UserName);
-               
-             if (user ==null )
-                return BadRequest(new Message_Dto {message_en ="Invalid user",message_fr ="invalide utilisateur"});
+            var result =await _user_Management.reset_user_access(UserName);
+            
+           if(result is null)
+              return BadRequest();  
 
-                if ( await _userManager.HasPasswordAsync(user))
-                {
-                    var new_Password = PasswordGeneratorHelper.password();
-                     await   _userManager.RemovePasswordAsync(user);
-                     await   _userManager.AddPasswordAsync(user,new_Password);
- 
-                     // send mail or sms to share the new password.
-                       _email.sendWelcomeEmailSendgrid(user.Email,user.FirstName,
-                    new WelcomeEmail {
-                        name=user.FirstName + " " +user.LastName,
-                        username=user.UserName,
-                        password=new_Password,
-                        customerServiceEmail=_config.GetSection("Sendgrid:customerServiceEmail").Value,
-                        customerServiceNumber=_config.GetSection("Sendgrid:customerServiceNumber").Value
-                    }
-                    );
-
-
-                    // if role is retails send email ==> to be study as a way to limit sms usage
-                    _orangesms.send_SMS(user.PhoneNumber,"Votre compte a ete reconfigure avec ce nouveau password :"+ new_Password +"Bien vouloir vous connecter");
-                     
-                     return Ok(new Message_Dto {message_en = "User is reset ", message_fr="Utilisateur est reconfigure"});
-                }
-
-
-            return Ok(user);
-
+             return Ok(result);
         }
        
         [Authorize(Roles="SuperAdmin,RetailerAdmin,DistributeurAdmin,CompanyAdmin")]
         [HttpPost("LockUser")] 
         public async Task<IActionResult> LockUser(string UserName)
         {
-           
-
             // later check  if the user requesting for unlocking / locking another user is authorizer
-            var user =await _userManager.FindByNameAsync(UserName);          
-              
-             if (user ==null )
-                return BadRequest(new { error ="User not found"});
+            var result =await _user_Management.lock_user(UserName);
+            
+           if(result is null)
+              return BadRequest();  
 
-                var lockoutEndDate = new DateTime(2999,01,01);
-                await _userManager.SetLockoutEnabledAsync(user,true);
-                await  _userManager.SetLockoutEndDateAsync(user, lockoutEndDate);
-
-                return Ok(new Message_Dto {message_en = "User is lock", message_fr="Utilisateur est bloque"});
-
+             return Ok(result);
         }
 
         [Authorize(Roles="SuperAdmin,RetailerAdmin,DistributeurAdmin,CompanyAdmin")]
         [HttpPost("UnLockUser")] 
         public async Task<IActionResult> UnLockUser(string UserName)
         {
+            var result =await _user_Management.unlock_user(UserName);
             
-            var user =await _userManager.FindByNameAsync(UserName);
-               
-             if (user ==null )
-                return BadRequest(new { error ="User not found"});
+           if(result is null)
+              return BadRequest();  
 
-                var lockoutEndDate = DateTime.Now;
-                await _userManager.SetLockoutEnabledAsync(user,true);
-                await  _userManager.SetLockoutEndDateAsync(user, lockoutEndDate);
-
-                return Ok(new Message_Dto {message_en = "User is unlock", message_fr="Utilisateur est debloque"});
+             return Ok(result);
 
         }
 

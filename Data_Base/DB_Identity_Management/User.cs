@@ -17,7 +17,7 @@ namespace Data_Base.DB_Identity_Management
 
         public DateTime Created { get; set; }
         
-        public DateTime ? LastActive { get; set; }
+        public DateTime LastActive { get; set; }
 
          [Required]
         public int EntityUserMapTo_Id { get; set; } // key id,      id =0 means user is admin.supe admin

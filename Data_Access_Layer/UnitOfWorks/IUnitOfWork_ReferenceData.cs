@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Data_Access_Layer.Repositories.Reference_Data_Repository;
 using Data_Base;
 
@@ -10,7 +11,7 @@ namespace Data_Access_Layer.UnitOfWorks
         IDistributor_Type_Repository  distributors_type { get; }    
         IRetailer_Type_Repository retailers_type {get;} 
         IRole_Permission_Repository role {get;}  
-        int save();
+         Task<int> save();
     }
 
      public class UnitOfWork_ReferenceData : IUnitOfWork_ReferenceData
@@ -39,11 +40,11 @@ namespace Data_Access_Layer.UnitOfWorks
         public void Dispose()
         {
             _context.Dispose();
-        }
+        } 
 
-        public int save()
+        public async Task<int> save()
         {
-            return _context.SaveChanges();
+            return await _context.SaveChangesAsync();
         }
 
     }

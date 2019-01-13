@@ -1,9 +1,12 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
-using LastMiles.API.BusinessLogic.Communication;
+using Business_Layer.Identity;
+using Data_Base.Data_Transfer_Objects;
+using Data_Base.DB_Identity_Management;
+/* using LastMiles.API.BusinessLogic.Communication;
 using LastMiles.API.BusinessLogic.Identity;
 using LastMiles.API.DataBase;
-using LastMiles.API.DataTransferObject;
+using LastMiles.API.DataTransferObject; */
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,14 +23,20 @@ namespace LastMiles.API.Controllers
     {
         ILogger _logger;
         private  IAccount_Creation _account_Creation;
+        private readonly IAccount_Queries _account_Queries;
+        private readonly IAccount_Update _account_Update;
         private readonly UserManager<User> _userManager;
 
         public AccountController(ILogger<AccountController> logger,
                                  IAccount_Creation account_Creation,
+                                 IAccount_Queries account_Queries,
+                                 IAccount_Update account_Update,
                                 UserManager<User> userManager)
         {           
             _logger = logger;
             _account_Creation = account_Creation;
+            _account_Queries = account_Queries;
+            _account_Update = account_Update;
             _userManager = userManager;
         }
 
@@ -44,7 +53,7 @@ namespace LastMiles.API.Controllers
         [HttpGet("GetCompanies")]
         public IActionResult GetCompanies([FromQuery] string company)
         {
-           var result = _account_Creation.search_company_withDetails(company);
+           var result = _account_Queries.search_company_and_load_details_along(company);
             return Ok(result);
         }
 
@@ -61,7 +70,7 @@ namespace LastMiles.API.Controllers
         [HttpGet("GetDistributors/{company_id}/{distributorName}")]
         public async Task<IActionResult> GetDistributors(int? company_id,string distributorName)
         {  
-            var distributro = _account_Creation.Search_Distributors(company_id,distributorName);
+            var distributro = _account_Queries.search_distributors_without_loading_details(company_id,distributorName);
             
             return Ok(distributro);
         }
@@ -70,17 +79,38 @@ namespace LastMiles.API.Controllers
         [HttpGet("GetDistributorDetails/{distributor_id}")]
          public async Task<IActionResult> GetDistributorDetails(int distributor_id)
         {  
-            var distributro = _account_Creation.Distributor_Details(distributor_id);
+            var distributro = _account_Queries.get_distributor_with_details(distributor_id);
             
             return Ok(distributro);
         }
 
-         [Authorize(Roles="SuperAdmin,Admin,CompanyAdmin")]
+        [Authorize(Roles="SuperAdmin,Admin,CompanyAdmin")]
+        [HttpPost("AddDistributorToCompany/{company_id}/{distributor_id}")]
+        public async Task<IActionResult> AddDistributorToCompany(int company_id,int distributor_id)
+        {        
+         
+           _account_Creation.add_distributor_to_a_company(company_id,distributor_id);
+            
+            return Ok();
+        }
+
+
+        [Authorize(Roles="SuperAdmin,Admin,CompanyAdmin")]
+        [HttpPost("RemoveDistributorToCompany/{company_id}/{distributor_id}")]
+        public async Task<IActionResult> RemoveDistributorToCompany(int company_id,int distributor_id)
+        {        
+         
+           _account_Creation.remove_distributor_to_a_company(company_id,distributor_id);
+            
+            return Ok();
+        }
+
+        [Authorize(Roles="SuperAdmin,Admin,CompanyAdmin")]
         [HttpPost("UpdateDistributor")]
         public async Task<IActionResult> UpdateDistributor([FromBody] Distributor_For_Registration_Dto distributor)
         {        
          
-           _account_Creation.Update_Distributor(distributor);
+           _account_Update.update_distributor(distributor);
             
             return Ok();
         }
@@ -89,18 +119,16 @@ namespace LastMiles.API.Controllers
         [HttpPost("CreateRetailer")]
         public IActionResult CreateRetailer([FromBody] Retailer_For_Registration_Dto retailer)
         {
-
             _account_Creation.create_new_Retailer(retailer);
             return Ok();
         }
-
      
         [Authorize(Roles="SuperAdmin,Admin,CompanyAdmin,DistributorAdmin")]
         [HttpGet("GetRetailers")]
         public IActionResult GetRetailers([FromQuery]string retailer)
         {
 
-            var response =  _account_Creation.Get_Retailers(retailer);
+            var response =  _account_Queries .search_retailers_without_loading_details(retailer);
             return Ok(response);
         }
 
@@ -109,7 +137,7 @@ namespace LastMiles.API.Controllers
         public IActionResult GetRetailerDetails(int retailer_id)
         {
 
-            var response =  _account_Creation.Get_Retailers_WithDetails(retailer_id);
+            var response =  _account_Queries.get_retailer_with_details(retailer_id);
             return Ok(response);
         }
 

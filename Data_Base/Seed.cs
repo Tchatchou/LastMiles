@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Data_Base.DB_Identity_Management;
+using Data_Base.DB_Product_Management;
 using Microsoft.AspNetCore.Identity;
 
 namespace Data_Base
@@ -9,12 +10,8 @@ namespace Data_Base
     public class Seed
     {
         private readonly DataContext _db;
-
         public RoleManager<Role> _roleManager { get; }
-
         public UserManager<User> _userManager { get; }
-
-
         public Seed(DataContext  db, UserManager<User> userManager, RoleManager<Role> roleManager)
         {
             _roleManager = roleManager;
@@ -186,6 +183,22 @@ namespace Data_Base
                    }
                });     
             }
+
+            if(_db.Product_Categories.Count()==0)
+            {
+                _db.Product_Categories.AddRange(new List<Product_Category>() {
+                   new Product_Category {
+                      
+                       name = "Produit Laitiers",
+                       desc ="Produit Laitiers"
+                   },
+                   new Product_Category {
+                    
+                       name = "Boisson gazeuse",
+                       desc ="Boisson gazeuse"
+                   }
+               });     
+            }
            
             if (_db.Set<Role_Creation_Possibility>().Count() ==0) {
 
@@ -235,7 +248,7 @@ namespace Data_Base
                 _db.Permissions.Add(new Permission { permission_id = 5, desc = "Get User"});
             }
 
-             if (_db.Set<Role_Permission>().Count() ==0) 
+            if (_db.Set<Role_Permission>().Count() ==0) 
              {
 
                // super admin default permission

@@ -15,8 +15,8 @@ Options:
 
 
 
------------------add migration 
-dotnet ef migrations add initialMigration (eg initialeCreate)
+-----------------add migration (eg initialeCreate)
+dotnet ef migrations add InitialCreate
 
 dotnet ef database update (Updates the database to a specified migration)
 

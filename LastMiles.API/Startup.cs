@@ -33,6 +33,7 @@ using Infrastructure.Communication.EmailSendgrid;
 using Infrastructure.Communication.OrangeSMS;
 using Data_Access_Layer.UnitOfWorks;
 using Business_Layer.Identity;
+using Business_Layer.Product_Management;
 
 namespace LastMiles.API
 {
@@ -108,13 +109,17 @@ namespace LastMiles.API
             // unit of work injection
             services.AddScoped<IUnitOfWork_ReferenceData, UnitOfWork_ReferenceData>(); 
             services.AddScoped<IUnitOfWork_Identity, UnitOfWork_Identity>();
+            services.AddScoped<IUnitOfWork_Product_Management, UnitOfWork_Product_Management>();
 
             services.AddScoped<IAccount_Creation, Account_Creation>();    
             services.AddScoped<IAccount_Queries, Account_Queries>();    
             services.AddScoped<IAccount_Update, Account_Update>();    
-            services.AddScoped<IUser_Management, User_Management>();    
+            services.AddScoped<IUser_Management, User_Management>();              
               
             services.AddScoped<IAuthentication, Authentication>(); 
+
+            services.AddScoped<IProduct_Creation_Update, Product_Creation_Update>(); 
+            services.AddScoped<IProduct_Queries, Product_Queries>(); 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,4 +1,5 @@
 using Data_Base.DB_Identity_Management;
+using Data_Base.DB_Product_Management;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -138,6 +139,14 @@ namespace Data_Base
         public DbSet<Company> Companies { get; set; }
         public DbSet<Company_Type> Company_Types { get; set; }
 
+        // Product Management
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Product_Category> Product_Categories { get; set; }
+
+        public DbSet<Product_Pricing_Table_Distributor> Product_Pricing_Table_Distributors { get; set; }
+
+        public DbSet<Product_Pricing_Table_Retailer> Product_Pricing_Table_Retailers { get; set; }
+
         /* 
                // ordering system
                public DbSet<Order_Receiver> Order_Receivers { get; set; }
@@ -145,8 +154,7 @@ namespace Data_Base
                public DbSet<Order_Sender> Order_Senders { get; set; }
                public DbSet<Order> Orders { get; set; }
                public DbSet<OrderDetail> OrderDetails { get; set; }
-               public DbSet<Product> Products { get; set; }
-               public DbSet<ProductCategory> ProductCategories { get; set; }
+              
            */
     }
 }

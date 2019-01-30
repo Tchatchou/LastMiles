@@ -506,7 +506,13 @@ namespace Data_Base.Migrations
 
                     b.Property<int>("product_Category_id");
 
-                    b.Property<double>("unitprice");
+                    b.Property<string>("product_code");
+
+                    b.Property<double>("unit");
+
+                    b.Property<double>("unitprice_standard_for_distributor");
+
+                    b.Property<double>("unitprice_standard_for_retailer");
 
                     b.HasKey("product_id");
 
@@ -514,7 +520,7 @@ namespace Data_Base.Migrations
 
                     b.HasIndex("product_Category_id");
 
-                    b.ToTable("Product");
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Data_Base.DB_Product_Management.Product_Category", b =>
@@ -529,7 +535,53 @@ namespace Data_Base.Migrations
 
                     b.HasKey("product_Category_id");
 
-                    b.ToTable("Product_Category");
+                    b.ToTable("Product_Categories");
+                });
+
+            modelBuilder.Entity("Data_Base.DB_Product_Management.Product_Pricing_Table_Distributor", b =>
+                {
+                    b.Property<int>("product_pricing_table_distributor_id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<double>("agree_unitpricing");
+
+                    b.Property<string>("comment");
+
+                    b.Property<int>("company_id");
+
+                    b.Property<int>("distributor_id");
+
+                    b.Property<int>("product_id");
+
+                    b.HasKey("product_pricing_table_distributor_id");
+
+                    b.HasIndex("product_id");
+
+                    b.ToTable("Product_Pricing_Table_Distributors");
+                });
+
+            modelBuilder.Entity("Data_Base.DB_Product_Management.Product_Pricing_Table_Retailer", b =>
+                {
+                    b.Property<int>("product_pricing_table_retailer_id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<double>("agree_unitpricing");
+
+                    b.Property<string>("comment");
+
+                    b.Property<int>("distributor_id");
+
+                    b.Property<int>("product_id");
+
+                    b.Property<int>("retailer_id");
+
+                    b.HasKey("product_pricing_table_retailer_id");
+
+                    b.HasIndex("product_id");
+
+                    b.ToTable("Product_Pricing_Table_Retailers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -755,6 +807,22 @@ namespace Data_Base.Migrations
                     b.HasOne("Data_Base.DB_Product_Management.Product_Category", "product_Category")
                         .WithMany("list_product")
                         .HasForeignKey("product_Category_id")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Data_Base.DB_Product_Management.Product_Pricing_Table_Distributor", b =>
+                {
+                    b.HasOne("Data_Base.DB_Product_Management.Product", "product")
+                        .WithMany("list_product_with_special_pricing_distributor")
+                        .HasForeignKey("product_id")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Data_Base.DB_Product_Management.Product_Pricing_Table_Retailer", b =>
+                {
+                    b.HasOne("Data_Base.DB_Product_Management.Product", "product")
+                        .WithMany("list_product_with_special_pricing_retailer")
+                        .HasForeignKey("product_id")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
